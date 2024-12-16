@@ -4,13 +4,13 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
 
 export async function POST(req: Request) {
-  // Get the headers
+  // Get the headers from the request
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
-
-  // If there are no headers, error out
+ 
+  // If there are no headers, error out 
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return new Response('Error occured -- no svix headers', {
       status: 400
@@ -21,12 +21,12 @@ export async function POST(req: Request) {
   const payload = await req.json()
   const body = JSON.stringify(payload);
 
-  // Create a new Svix instance with your secret
+  // Create a new Svix instance with your secret from Clerk
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || '');
 
   let evt: WebhookEvent
 
-  // Verify the payload
+  // Verify the payload against the webhook secret
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     })
   }
 
-  // Handle the webhook
+  // Handle the webhook event
   const eventType = evt.type;
 
   if (eventType === 'user.created') {
